@@ -19,6 +19,9 @@ public class WordCountTest {
         return new InputStreamReader(getClass().getClassLoader().getResourceAsStream(filename), StandardCharsets.US_ASCII);
     }
     
+    // TODO: test larger files with different content and no 'one word per line' quirk.
+    // TODO: test degenerate cases - for example an empty file or one with big blocks of whitespace
+    
     @Test
     public void sanityTestBuiltins() {
         try {

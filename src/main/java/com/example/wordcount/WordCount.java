@@ -16,16 +16,16 @@ import java.util.StringTokenizer;
  */
 public class WordCount {
     
-    
     /** Subroutine to handle incrementing the word count via the map API.
      * @param word Word that has been found
      * @param lookup Map storing the number of occurrences of each word found.
      */
     private static void wordFound(String word, Map<String, Integer> lookup){
         // TODO can I optimize away the Integer allocations? Maybe make a mutable int wrapper...?
-        Integer prev = lookup.putIfAbsent(word, new Integer(1));
+        String key = word.toLowerCase();
+        Integer prev = lookup.putIfAbsent(key, new Integer(1));
         if ((prev != null) && (prev.intValue() < Integer.MAX_VALUE)){
-            lookup.put(word, new Integer(prev.intValue() + 1));
+            lookup.put(key, new Integer(prev.intValue() + 1));
         }
     }
     
@@ -38,7 +38,7 @@ public class WordCount {
             assert (keyword != null);
             Integer count = lookup.get(keyword);
             assert (count != null);
-            System.out.println(keyword + ": " + count.toString());
+            System.out.println(count.toString() + " " + keyword);
         }
     }
     
@@ -58,7 +58,7 @@ public class WordCount {
         BufferedReader input_reader = new BufferedReader(input);
         String line = input_reader.readLine();
         while (line != null){
-            StringTokenizer tokenizer = new StringTokenizer(line);
+            StringTokenizer tokenizer = new StringTokenizer(line, " \t\n\r\f,;:.?!");
             while (tokenizer.hasMoreTokens()){
                 String word = tokenizer.nextToken();
                 wordFound(word, lookup);
@@ -81,14 +81,15 @@ public class WordCount {
         final int HASH_INITIAL_CAPACITY = 1024;
         Map<String, Integer> lookup = new HashMap<String, Integer>(HASH_INITIAL_CAPACITY);
         
-        
-        // FIXME: Using BufferedReader requires each word to be on its own line
         BufferedReader input_reader = new BufferedReader(input);
-
-        String word = input_reader.readLine();
-        while (word != null){
-            wordFound(word, lookup);
-            word = input_reader.readLine();
+        String line = input_reader.readLine();
+        while (line != null){
+            StringTokenizer tokenizer = new StringTokenizer(line);
+            while (tokenizer.hasMoreTokens()){
+                String word = tokenizer.nextToken();
+                wordFound(word, lookup);
+            }
+            line = input_reader.readLine();
         }
         return lookup;
     }
