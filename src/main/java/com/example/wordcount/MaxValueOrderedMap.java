@@ -11,7 +11,7 @@ import java.util.Set;
  * @param <K>
  * @param <V>
  */
-public class MaxValueOrderedMap<K, V extends Comparable> extends AbstractMap<K, V>{
+public class MaxValueOrderedMap<K extends Comparable, V extends Comparable> extends AbstractMap<K, V>{
     
     private Set<Entry> keyvalues;
 
@@ -24,7 +24,7 @@ public class MaxValueOrderedMap<K, V extends Comparable> extends AbstractMap<K, 
      * @param <K>
      * @param <V> 
      */
-    private static class Entry<K, V extends Comparable> extends AbstractMap.SimpleEntry<K, V> implements Comparable {
+    private static class Entry<K extends Comparable, V extends Comparable> extends AbstractMap.SimpleEntry<K, V> implements Comparable {
         // Invariant: Parent >= this >= bigchild >= smallchild
         
         /**
@@ -43,7 +43,7 @@ public class MaxValueOrderedMap<K, V extends Comparable> extends AbstractMap<K, 
         
         
         /** As per {@link java.lang.Comparable}, compares the natural order of this entry to the target.
-         * This class is ordered using the values, which is inconsistent with equals().
+         * This class is ordered using the values, then the keys.
          * @param target Entry to be compared to
          * @return a negative integer, zero, or a positive integer when this entry is less than, equal to, or greater than the specified entry (respectively).
          */
@@ -51,7 +51,12 @@ public class MaxValueOrderedMap<K, V extends Comparable> extends AbstractMap<K, 
         public int compareTo(Object o){
             // NOTE: it's not valid to compare entries to other object types
             Entry<? extends K, ? extends V> target = (Entry<? extends K, ? extends V>) o;
-            return ((Comparable) getValue()).compareTo(target.getValue());    
+            int valuecompare = ((Comparable) getValue()).compareTo(target.getValue());
+            if (valuecompare == 0){
+                return ((Comparable) getKey()).compareTo(target.getKey());
+            } else {
+                return valuecompare;
+            }
         }
     }
     

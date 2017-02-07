@@ -22,11 +22,7 @@ public class WordCount {
      */
     private static void wordFound(String word, Map<String, Integer> lookup){
         // TODO can I optimize away the Integer allocations? Maybe make a mutable int wrapper...?
-        String key = word.toLowerCase();
-        Integer prev = lookup.putIfAbsent(key, new Integer(1));
-        if ((prev != null) && (prev.intValue() < Integer.MAX_VALUE)){
-            lookup.put(key, new Integer(prev.intValue() + 1));
-        }
+        
     }
     
 
@@ -61,7 +57,11 @@ public class WordCount {
             StringTokenizer tokenizer = new StringTokenizer(line, " \t\n\r\f,;:.?!");
             while (tokenizer.hasMoreTokens()){
                 String word = tokenizer.nextToken();
-                wordFound(word, lookup);
+                String key = word.toLowerCase();
+                Integer prev = lookup.putIfAbsent(key, new Integer(1));
+                if ((prev != null) && (prev.intValue() < Integer.MAX_VALUE)){
+                    lookup.put(key, new Integer(prev.intValue() + 1));
+                }
             }
             line = input_reader.readLine();
         }
@@ -78,8 +78,7 @@ public class WordCount {
     Map<String, Integer> runOptimized(InputStreamReader input) throws IOException{
         
         // TODO: write a custom data structure more tailored to our purpose
-        final int HASH_INITIAL_CAPACITY = 1024;
-        Map<String, Integer> lookup = new HashMap<String, Integer>(HASH_INITIAL_CAPACITY);
+        WordCountingTrie trie = new WordCountingTrie();
         
         BufferedReader input_reader = new BufferedReader(input);
         String line = input_reader.readLine();
@@ -87,7 +86,8 @@ public class WordCount {
             StringTokenizer tokenizer = new StringTokenizer(line);
             while (tokenizer.hasMoreTokens()){
                 String word = tokenizer.nextToken();
-                wordFound(word, lookup);
+                String key = word.toLowerCase();
+                trie.add()
             }
             line = input_reader.readLine();
         }

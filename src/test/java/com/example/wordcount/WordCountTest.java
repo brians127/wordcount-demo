@@ -11,7 +11,7 @@ import org.junit.Test;
 /**
  * Test user-level WordCount functionality.
  */
-public class WordCountTest {
+public class WordCountTest extends UnitTest {
     
     static final String TEXTFILE_WORD_PER_LINE_SHORT = "wordperline.txt";
     
