@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 /**
- *
+ * Note that this class does not copy the inputted CharSequence. 
  * @author bshaw
  */
 public class WordCountingTrie extends AbstractSet<CharSequence> {
@@ -20,11 +20,15 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
     public int size() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    int countOf(String three) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     
     private static class Node {
         // What this node represents
-        CharSequence letters;
+        String letters;
         // Children of the node
         Collection<Node> branches;
         // Payload - number of occurrences of the word
@@ -33,14 +37,15 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
         /** Constructor for the root of the trie.
          */
         Node(){
-            this.letters = "";
+            letters = "";
             branches = new Vector<Node>();
             wordcount = 0;
         }
         
         
         Node( CharSequence word, int index ){
-            this.letters = word.subSequence(index, word.length());
+            // toString() ensures that passing a mutable CharSequence as an argument doesn't result in us claiming ownership of the object.
+            letters = word.subSequence(index, word.length()).toString();
             branches = new Vector<Node>();
             wordcount = 0;
         }
@@ -72,7 +77,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 branches = tmpbranches;
                 
                 // Step 2: adjust our node's sequence
-                letters = letters.subSequence(0, nonmatch);
+                letters = letters.substring(0, nonmatch);
 
                 // Step 3: create our two branches: one for the portion removed, one for the newly inserted word
                 assert( branches.isEmpty() );

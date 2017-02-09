@@ -87,11 +87,12 @@ public class WordCount {
             while (tokenizer.hasMoreTokens()){
                 String word = tokenizer.nextToken();
                 String key = word.toLowerCase();
-                trie.add()
+                // NOTE: defined behavior is to increment the count whenever a duplicate key is added
+                trie.add(key);
             }
             line = input_reader.readLine();
         }
-        return lookup;
+        return new WordCountMap<>(trie);
     }
 
 
@@ -103,12 +104,15 @@ public class WordCount {
     public static void main(String[] arguments){
         try {
             InputStreamReader reader;
-            if (arguments.length == 0){
-                reader = new InputStreamReader(System.in, StandardCharsets.US_ASCII);
-            } else if (arguments.length == 1){
-                reader = new FileReader(arguments[0]);
-            } else {
-                throw new RuntimeException("Usage: WordCount (filename - omit for stdin)" + Integer.toString(arguments.length));
+            switch (arguments.length) {
+                case 0:
+                    reader = new InputStreamReader(System.in, StandardCharsets.US_ASCII);
+                    break;
+                case 1:
+                    reader = new FileReader(arguments[0]);
+                    break;
+                default:
+                    throw new RuntimeException("Usage: WordCount (filename - omit for stdin)" + Integer.toString(arguments.length));
             }
             
             Map<String, Integer> lookup = new WordCount().runWithBuiltins(reader);
