@@ -15,16 +15,6 @@ import java.util.StringTokenizer;
  * @author bshaw
  */
 public class WordCount {
-    
-    /** Subroutine to handle incrementing the word count via the map API.
-     * @param word Word that has been found
-     * @param lookup Map storing the number of occurrences of each word found.
-     */
-    private static void wordFound(String word, Map<String, Integer> lookup){
-        // TODO can I optimize away the Integer allocations? Maybe make a mutable int wrapper...?
-        
-    }
-    
 
     /** Prints the number of times each word appears to stdout.
      * @param lookup Mapping of each word to the number of appearances.

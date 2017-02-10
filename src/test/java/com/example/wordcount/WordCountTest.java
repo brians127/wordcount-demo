@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,6 +36,17 @@ public class WordCountTest extends UnitTest {
     public void sanityTestOptimized() {
         try {
             new WordCount().runOptimized(getText(TEXTFILE_WORD_PER_LINE_SHORT));
+        } catch (IOException e){
+            throw new RuntimeException(e);
+        }
+    }
+    
+    @Test
+    public void testWordPerLineShort() {
+        try {
+            Map<String, Integer> builtins_map = new WordCount().runWithBuiltins(getText(TEXTFILE_WORD_PER_LINE_SHORT));
+            Map<String, Integer> optimized_map = new WordCount().runOptimized(getText(TEXTFILE_WORD_PER_LINE_SHORT));
+            Assert.assertEquals(builtins_map, optimized_map);
         } catch (IOException e){
             throw new RuntimeException(e);
         }

@@ -15,8 +15,10 @@ import java.util.Set;
  */
 public class WordCountMap<K extends CharSequence, Integer> extends AbstractMap<K, Integer> {
 
+    WordCountingTrie trie;
+    
     WordCountMap(WordCountingTrie trie) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.trie = trie;
     }
 
     @Override
