@@ -1,12 +1,15 @@
 package com.example.wordcount;
 
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Stack;
 import java.util.Vector;
 
 /**
- * Note that this class does not copy the inputted CharSequence. 
+ *  
  * @author bshaw
  */
 public class WordCountingTrie extends AbstractSet<CharSequence> {
@@ -16,7 +19,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
 
     @Override
     public Iterator<CharSequence> iterator() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return new WCTIterator(this);
     }
 
     @Override
@@ -34,6 +37,24 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
         }
     }
     
+    
+    @Override
+    public boolean remove(Object word){
+        if (word instanceof CharSequence){
+            Node node = root.getNode((CharSequence) word, 0);
+            if (node == null){
+                return false;
+            } else {
+                // 
+                node.wordcount = 0;
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+    
     private Node getNode(CharSequence word){
         return root.getNode(word, 0);
     }
@@ -46,7 +67,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
      */
     @Override
     public boolean contains(Object word){
-        if (word.instanceOf(CharSequence)){
+        if (word instanceof CharSequence){
             return getNode((CharSequence) word) != null;
         } else {
             return false;
@@ -73,8 +94,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
     public void clear(){
         root.clear();
         size = 0;
-    }
-    
+    }    
     
     private static class Node {
         // What this node represents
@@ -85,6 +105,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
         int wordcount;
         
         /** Constructor for the root of the trie.
+         * Calling this constructor does not count as inserting "" into the trie.
          */
         Node(){
             letters = "";
@@ -92,8 +113,13 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
             wordcount = 0;
         }
         
-        
-        Node( CharSequence word, int index ){
+        /** Constructor for additional nodes.
+         * The supplied word is inserted into the trie.
+         * @param another_node Any other node - used to set up iterators
+         * @param word Sequence of letters this node represents
+         * @param index Starting offset within 'word'
+         */
+        Node( Node another_node, CharSequence word, int index ){
             // toString() ensures that passing a mutable CharSequence as an argument doesn't result in us claiming ownership of the object.
             letters = word.subSequence(index, word.length()).toString();
             branches = new Vector<Node>();
@@ -107,7 +133,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
          * @param start_index 0-based index within the word to start from.
          * @return whether or not the set of words was modified (will be false if the count for a known word was incremented)
          */
-        boolean addWord( CharSequence word, int start_index ){
+        boolean addWord(CharSequence word, int start_index){
             final int letters_length = letters.length(); // no API guarantee length() is constant time and fast
             final int word_length = word.length() - start_index;
             
@@ -127,7 +153,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 assert( nonmatch > 0 );
                 
                 // Step 1: create new node for the portion removed
-                Node newnode = new Node( letters, nonmatch );
+                Node newnode = new Node(this, letters, nonmatch);
                 // Swap newnode's empty set of branches with our existing set
                 Collection<Node> tmpbranches = newnode.branches;
                 newnode.branches = branches;
@@ -139,13 +165,13 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 // Step 3: create our two branches: one for the portion removed, one for the newly inserted word
                 assert( branches.isEmpty() );
                 branches.add(newnode);
-                branches.add(new Node( word, nonmatch ));
+                branches.add(new Node(this, word, nonmatch));
                 return true;
                 
             } else if (word_length == letters_length){
                 // exact match for our word
-                wordcount++;
-                return false;
+                // that said, wordcount of 0 means it was previously removed.
+                return (wordcount++ == 0);
             } else {
                 // string we're trying to match goes beyond our node's boundaries
                 
@@ -161,7 +187,7 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 }
                 
                 // Step 2: if no match found in existing branches, add a new one
-                branches.add(new Node( word, start_index ));
+                branches.add(new Node(this, word, start_index));
                 return true;
             }
         }
@@ -220,6 +246,89 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 // no branch found that could contain what we're looking for
                 return null;
             }
+        }
+    }
+    
+    /** Iterates through all words in the map in no particular order.
+     * If a node is inserted during the iteration, behavior is not defined.
+     */
+    private class WCTIterator implements Iterator<CharSequence>{
+        
+        Stack<Node> node_tracker = new Stack<>();
+        Stack<Iterator<Node>> index_tracker = new Stack<>();
+        
+        WCTIterator( WordCountingTrie trie ){
+            node_tracker.push(trie.root);
+            index_tracker.push(trie.root.branches.iterator());
+            if (trie.root.wordcount == 0){
+                advance();
+            }
+        }
+        
+        private void advance(){
+            assert(!node_tracker.isEmpty());
+            do {
+                /* 
+                 * Invariants:
+                 * node_tracker contains all nodes associated with the string we most recently returned.
+                 * index_tracker contains all iterators associated with the nodes, except perhaps the top one.
+                 *
+                 */
+                
+                /*
+                Node current = node_tracker.peek();
+                assert(node_tracker.size() == index_tracker.size());
+                assert(node_tracker.size() <= index_tracker.size() + 1);
+                
+                if (node_tracker.size() > index_tracker.size()){
+                    // we have yet to explore the top node's branches
+                    Iterator<Node> current_iter = node_tracker.peek().branches.iterator();
+                    if (current_iter.hasNext()){
+                        // search depth first
+                        node_tracker.push(current_iter.next());
+                        index_tracker.push(current_iter);
+                        continue;
+                    } else {
+                        // leaf - return to the previous level
+                        node_tracker.pop();
+                    }
+                }
+                */
+                
+                assert(node_tracker.size() == index_tracker.size());
+                Iterator<Node> current_iter = index_tracker.peek();
+                if (current_iter.hasNext()){
+                    // advance to the next branch
+                    Node current = current_iter.next();
+                    node_tracker.push(current);
+                    index_tracker.push(current.branches.iterator());
+                } else {
+                    // leaf - return to the previous level
+                    node_tracker.pop();
+                    index_tracker.pop();
+                }
+                
+                // Loop skips removed nodes (wordcount == 0) by advancing until the next valid node or the end is reached.
+            } while (!node_tracker.isEmpty() && (node_tracker.peek().wordcount == 0));
+        }
+        
+        @Override
+        public boolean hasNext(){
+            return !node_tracker.empty();
+        }
+        
+        
+        @Override
+        public CharSequence next(){
+            if (!hasNext()){
+                throw new NoSuchElementException("All elements of the trie have been iterated through");
+            }
+            StringBuilder builder = new StringBuilder();
+            for (Node node : node_tracker){
+                builder.append(node.letters);
+            }
+            advance();
+            return builder.toString();
         }
     }
 }

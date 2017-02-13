@@ -63,7 +63,7 @@ public class SetTest extends UnitTest {
         
         Assert.assertTrue(items.size() == expected_size);
         Assert.assertTrue(items.toArray().length == expected_size);
-        Assert.assertTrue(items.toArray(new Object[expected_size + 1]).length == expected_size);
+        Assert.assertTrue(items.toArray(new Object[expected_size + 1]).length == expected_size + 1);
         
         Iterator<? extends Object> iter = items.iterator();
         for (int i = 0; i < expected_size; i++){

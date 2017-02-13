@@ -26,4 +26,14 @@ public class WordCountMap<K extends CharSequence, Integer> extends AbstractMap<K
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
+    
+    /**
+     * Returns the number of keys which are represented in this map.
+     * @return number of keys
+     */
+    @Override
+    public int size(){
+        return trie.size();
+    }
+    
 }

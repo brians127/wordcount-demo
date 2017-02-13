@@ -28,6 +28,16 @@ public class WordCount {
         }
     }
     
+    
+    static void printTrie(WordCountingTrie trie){
+        for (CharSequence keyword : trie){
+            assert (keyword != null);
+            int count = trie.countOf(keyword);
+            System.out.println(Integer.toString(count) + " " + keyword);
+        }
+        System.out.println("----------------");
+    }
+    
 
     /** Produces a word count using Java's built-in data structures.Does stuff.
      * The input file must have each word separated by a newline.
@@ -82,6 +92,7 @@ public class WordCount {
             }
             line = input_reader.readLine();
         }
+                
         return new WordCountMap<>(trie);
     }
 
@@ -104,6 +115,22 @@ public class WordCount {
                 default:
                     throw new RuntimeException("Usage: WordCount (filename - omit for stdin)" + Integer.toString(arguments.length));
             }
+            
+            /* BEGIN DEBUG */
+            
+            WordCountingTrie trie = new WordCountingTrie();
+            printTrie(trie);
+            trie.add("Lorem");
+            printTrie(trie);
+            trie.add("Lipstick");
+            printTrie(trie);
+            trie.add("Pig");
+            printTrie(trie);
+            
+            //new WordCount().runOptimized(reader);
+            
+            
+            /* END DEBUG */
             
             Map<String, Integer> lookup = new WordCount().runWithBuiltins(reader);
             printWordCounts( lookup );

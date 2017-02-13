@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  *
@@ -29,6 +30,7 @@ public class WordCountingTrieTest extends UnitTest {
     }
     
     
+    @Ignore
     @Test
     public void testSimpleSet(){
         Set<CharSequence> set = new WordCountingTrie();
@@ -51,6 +53,7 @@ public class WordCountingTrieTest extends UnitTest {
     
     /** Verify correct behavior when using an object type where .equals() and .compareTo() behave the same way.
      */
+    @Ignore
     @Test
     public void testIntegerSetWithDuplicates(){
         WordCountingTrie set = new WordCountingTrie();
@@ -73,6 +76,7 @@ public class WordCountingTrieTest extends UnitTest {
         Assert.assertTrue(set.countOf("cow") == 0);
     }
     
+    @Ignore
     @Test
     public void testClear(){
         WordCountingTrie set = new WordCountingTrie();
