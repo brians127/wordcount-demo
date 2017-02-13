@@ -126,6 +126,10 @@ public class WordCount {
             printTrie(trie);
             trie.add("Pig");
             printTrie(trie);
+            trie.add("P");
+            printTrie(trie);
+            trie.add("Pi");
+            printTrie(trie);
             
             //new WordCount().runOptimized(reader);
             

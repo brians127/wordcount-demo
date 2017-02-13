@@ -30,13 +30,21 @@ public class WordCountingTrieTest extends UnitTest {
     }
     
     
-    @Ignore
     @Test
     public void testSimpleSet(){
         Set<CharSequence> set = new WordCountingTrie();
         set.add("two");
+        SetTest.verifySize(set, 1);
+        SetTest.verifySet(set);
+        Assert.assertTrue(set.contains("two"));
         set.add("negative");
+        SetTest.verifySize(set, 2);
+        SetTest.verifySet(set);
+        Assert.assertTrue(set.contains("negative"));
         set.add("three");
+        SetTest.verifySize(set, 3);
+        SetTest.verifySet(set);
+        Assert.assertTrue(set.contains("three"));
         set.add("affirmative");
         SetTest.verifySize(set, 4);
         SetTest.verifySet(set);
@@ -53,7 +61,6 @@ public class WordCountingTrieTest extends UnitTest {
     
     /** Verify correct behavior when using an object type where .equals() and .compareTo() behave the same way.
      */
-    @Ignore
     @Test
     public void testIntegerSetWithDuplicates(){
         WordCountingTrie set = new WordCountingTrie();
@@ -76,7 +83,8 @@ public class WordCountingTrieTest extends UnitTest {
         Assert.assertTrue(set.countOf("cow") == 0);
     }
     
-    @Ignore
+    /** Verify that clearing a set results in a set of size 0.
+     */
     @Test
     public void testClear(){
         WordCountingTrie set = new WordCountingTrie();

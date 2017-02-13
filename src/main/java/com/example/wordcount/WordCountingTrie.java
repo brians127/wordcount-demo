@@ -68,7 +68,8 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
     @Override
     public boolean contains(Object word){
         if (word instanceof CharSequence){
-            return getNode((CharSequence) word) != null;
+            Node node = getNode((CharSequence) word);
+            return (node != null) && (node.wordcount > 0);
         } else {
             return false;
         }
@@ -115,15 +116,14 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
         
         /** Constructor for additional nodes.
          * The supplied word is inserted into the trie.
-         * @param another_node Any other node - used to set up iterators
          * @param word Sequence of letters this node represents
          * @param index Starting offset within 'word'
          */
-        Node( Node another_node, CharSequence word, int index ){
+        Node( CharSequence word, int index ){
             // toString() ensures that passing a mutable CharSequence as an argument doesn't result in us claiming ownership of the object.
             letters = word.subSequence(index, word.length()).toString();
             branches = new Vector<Node>();
-            wordcount = 1;
+            wordcount = 0;
         }
         
         /**
@@ -148,46 +148,62 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
             }
             
             // check if this node represents a substring of 'word'
-            if (nonmatch < limit){
+            if (nonmatch < letters_length){
                 // need to split the node
                 assert( nonmatch > 0 );
                 
                 // Step 1: create new node for the portion removed
-                Node newnode = new Node(this, letters, nonmatch);
+                Node removed_portion = new Node(letters, nonmatch);
+                removed_portion.wordcount = wordcount;
+                wordcount = 0;
                 // Swap newnode's empty set of branches with our existing set
-                Collection<Node> tmpbranches = newnode.branches;
-                newnode.branches = branches;
+                Collection<Node> tmpbranches = removed_portion.branches;
+                removed_portion.branches = branches;
                 branches = tmpbranches;
                 
                 // Step 2: adjust our node's sequence
                 letters = letters.substring(0, nonmatch);
-
+                
                 // Step 3: create our two branches: one for the portion removed, one for the newly inserted word
                 assert( branches.isEmpty() );
-                branches.add(newnode);
-                branches.add(new Node(this, word, nonmatch));
+                branches.add(removed_portion);
+                if (word_length == nonmatch){
+                    // inserted word matches the subset of the existing node
+                    System.out.println("Inserting matching subset " + letters + " for word " + word);
+                    wordcount = 1;
+                } else {
+                    // inserted word = subset of existing + some other letters
+                    Node new_branch = new Node(word, nonmatch + start_index);
+                    new_branch.wordcount = 1;
+                    System.out.println("Inserting new tail " + new_branch.letters + " with prefix " + letters + " for word " + word);
+                    branches.add(new_branch);
+                }
                 return true;
                 
             } else if (word_length == letters_length){
                 // exact match for our word
                 // that said, wordcount of 0 means it was previously removed.
+                System.out.println("Found duplicate of existing word " + word);
                 return (wordcount++ == 0);
             } else {
+                assert( nonmatch == letters_length );
                 // string we're trying to match goes beyond our node's boundaries
                 
                 // Step 1: see if an existing branch has a longer subsequence of the node
                 // if so, recurse into the appropriate branch
-                assert( nonmatch <= letters_length );
-                assert( nonmatch == Math.min(letters_length, word_length) );
                 for (Node child : branches){
-                    if (child.letters.charAt(0)== word.charAt(nonmatch)){
+                    if (child.letters.charAt(0)== word.charAt(nonmatch + start_index)){
                         // NOTE: recursion!
-                        return child.addWord(word, nonmatch);
+                        System.out.println("Recursing for " + word + " because branch found with the letter " + child.letters.substring(0,1));
+                        return child.addWord(word, nonmatch + start_index);
                     }
                 }
                 
                 // Step 2: if no match found in existing branches, add a new one
-                branches.add(new Node(this, word, start_index));
+                Node new_node = new Node(word, start_index);
+                new_node.wordcount = 1;
+                branches.add(new_node);
+                System.out.println("Inserting new branch " + new_node.letters + " with prefix " + letters + " for word " + word);
                 return true;
             }
         }
@@ -223,9 +239,12 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 }
             }
             
+            System.out.println("Searching for " + word + " in node " + letters);
+            
             // check if this node represents a substring of 'word'
-            if (nonmatch < limit){
+            if (nonmatch < letters_length){
                 // node not found
+                System.out.println("No match found for " + word + " because it's less than " + letters);
                 return null;
             } else if (word_length == letters_length){
                 // exact match for our word
@@ -237,13 +256,14 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 // if so, recurse into the appropriate branch
                 assert( nonmatch == letters_length );
                 for (Node child : branches){
-                    if (child.letters.charAt(0)== word.charAt(letters_length)){
+                    if (child.letters.charAt(0)== word.charAt(letters_length + start_index)){
                         // NOTE: recursion!
-                        return child.getNode(word, letters_length);
+                        return child.getNode(word, letters_length + start_index);
                     }
                 }
                 
                 // no branch found that could contain what we're looking for
+                System.out.println("No match found for " + word + " because " + letters + " has no appropriate branch");
                 return null;
             }
         }
@@ -265,36 +285,17 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
             }
         }
         
+        /** Advances the iterator to the next word in the map.
+         */
         private void advance(){
             assert(!node_tracker.isEmpty());
             do {
-                /* 
-                 * Invariants:
+                /* Invariants:
                  * node_tracker contains all nodes associated with the string we most recently returned.
-                 * index_tracker contains all iterators associated with the nodes, except perhaps the top one.
-                 *
+                 * index_tracker contains all iterators associated with the nodes in node_tracker.
+                 * 
+                 * 
                  */
-                
-                /*
-                Node current = node_tracker.peek();
-                assert(node_tracker.size() == index_tracker.size());
-                assert(node_tracker.size() <= index_tracker.size() + 1);
-                
-                if (node_tracker.size() > index_tracker.size()){
-                    // we have yet to explore the top node's branches
-                    Iterator<Node> current_iter = node_tracker.peek().branches.iterator();
-                    if (current_iter.hasNext()){
-                        // search depth first
-                        node_tracker.push(current_iter.next());
-                        index_tracker.push(current_iter);
-                        continue;
-                    } else {
-                        // leaf - return to the previous level
-                        node_tracker.pop();
-                    }
-                }
-                */
-                
                 assert(node_tracker.size() == index_tracker.size());
                 Iterator<Node> current_iter = index_tracker.peek();
                 if (current_iter.hasNext()){
@@ -303,9 +304,11 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                     node_tracker.push(current);
                     index_tracker.push(current.branches.iterator());
                 } else {
-                    // leaf - return to the previous level
-                    node_tracker.pop();
-                    index_tracker.pop();
+                    // leaf - return to the previous level, and continue until one is found that still has branches to iterate through.
+                    while (!index_tracker.isEmpty() && !index_tracker.peek().hasNext()){
+                        node_tracker.pop();
+                        index_tracker.pop();
+                    }
                 }
                 
                 // Loop skips removed nodes (wordcount == 0) by advancing until the next valid node or the end is reached.
