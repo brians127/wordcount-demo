@@ -23,13 +23,16 @@ import org.junit.Ignore;
  */
 public class WordCountingTrieTest extends UnitTest {
     
+    /** Verify correct behavior with an empty set.
+     */
     @Test
     public void testEmptySet(){
         Set<CharSequence> set = new WordCountingTrie();
         SetTest.verifySize(set, 0);
     }
     
-    
+    /** Verify correct behavior with a simple set without duplicates.
+     */
     @Test
     public void testSimpleSet(){
         Set<CharSequence> set = new WordCountingTrie();
@@ -59,17 +62,18 @@ public class WordCountingTrieTest extends UnitTest {
         Assert.assertFalse(set.contains("t"));
     }
     
-    /** Verify correct behavior when using an object type where .equals() and .compareTo() behave the same way.
+    
+    /** Verify correct behavior when the same word is inserted multiple times.
      */
     @Test
-    public void testIntegerSetWithDuplicates(){
+    public void testSetWithDuplicates(){
         WordCountingTrie set = new WordCountingTrie();
-        set.add("two");
-        set.add("hamburger");
-        set.add("two");
-        set.add("three");
-        set.add("three");
-        set.add("three");
+        Assert.assertTrue(set.add("two"));
+        Assert.assertTrue(set.add("hamburger"));
+        Assert.assertFalse(set.add("two"));
+        Assert.assertTrue(set.add("three"));
+        Assert.assertFalse(set.add("three"));
+        Assert.assertFalse(set.add("three"));
         SetTest.verifySet(set);
         SetTest.verifySize(set, 3); // 'special' gets inserted once, and the other -1 is considered to be the same item
         Assert.assertTrue(set.contains("two"));
@@ -81,6 +85,29 @@ public class WordCountingTrieTest extends UnitTest {
         Assert.assertTrue(set.countOf("two") == 2);
         Assert.assertTrue(set.countOf("three") == 3);
         Assert.assertTrue(set.countOf("cow") == 0);
+    }
+    
+    
+    @Test
+    public void testRelatedStrings(){
+        WordCountingTrie trie = new WordCountingTrie();
+        trie.add("Lorem");
+        trie.add("");
+        trie.add("Lipstick");
+        trie.add("Pig");
+        trie.add("P");
+        trie.add("Pi");
+        trie.add("Piglet");
+        trie.add("Lipstick");
+        trie.add("");
+        Assert.assertEquals(trie.countOf("Lorem"), 1);
+        Assert.assertEquals(trie.countOf("Lipstick"), 2);
+        Assert.assertEquals(trie.countOf("P"), 1);
+        Assert.assertEquals(trie.countOf("Pi"), 1);
+        Assert.assertEquals(trie.countOf("Pig"), 1);
+        Assert.assertEquals(trie.countOf("Piglet"), 1);
+        Assert.assertEquals(trie.countOf(""), 2);
+        Assert.assertEquals(trie.countOf("Loser"), 0);
     }
     
     /** Verify that clearing a set results in a set of size 0.

@@ -169,13 +169,11 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 branches.add(removed_portion);
                 if (word_length == nonmatch){
                     // inserted word matches the subset of the existing node
-                    System.out.println("Inserting matching subset " + letters + " for word " + word);
                     wordcount = 1;
                 } else {
                     // inserted word = subset of existing + some other letters
                     Node new_branch = new Node(word, nonmatch + start_index);
                     new_branch.wordcount = 1;
-                    System.out.println("Inserting new tail " + new_branch.letters + " with prefix " + letters + " for word " + word);
                     branches.add(new_branch);
                 }
                 return true;
@@ -183,7 +181,6 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
             } else if (word_length == letters_length){
                 // exact match for our word
                 // that said, wordcount of 0 means it was previously removed.
-                System.out.println("Found duplicate of existing word " + word);
                 return (wordcount++ == 0);
             } else {
                 assert( nonmatch == letters_length );
@@ -194,16 +191,14 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 for (Node child : branches){
                     if (child.letters.charAt(0)== word.charAt(nonmatch + start_index)){
                         // NOTE: recursion!
-                        System.out.println("Recursing for " + word + " because branch found with the letter " + child.letters.substring(0,1));
                         return child.addWord(word, nonmatch + start_index);
                     }
                 }
                 
                 // Step 2: if no match found in existing branches, add a new one
-                Node new_node = new Node(word, start_index);
+                Node new_node = new Node(word, nonmatch + start_index);
                 new_node.wordcount = 1;
                 branches.add(new_node);
-                System.out.println("Inserting new branch " + new_node.letters + " with prefix " + letters + " for word " + word);
                 return true;
             }
         }
@@ -239,12 +234,9 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 }
             }
             
-            System.out.println("Searching for " + word + " in node " + letters);
-            
             // check if this node represents a substring of 'word'
             if (nonmatch < letters_length){
                 // node not found
-                System.out.println("No match found for " + word + " because it's less than " + letters);
                 return null;
             } else if (word_length == letters_length){
                 // exact match for our word
@@ -263,7 +255,6 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
                 }
                 
                 // no branch found that could contain what we're looking for
-                System.out.println("No match found for " + word + " because " + letters + " has no appropriate branch");
                 return null;
             }
         }
@@ -333,5 +324,17 @@ public class WordCountingTrie extends AbstractSet<CharSequence> {
             advance();
             return builder.toString();
         }
+    }
+    
+    /** Prints a trie including the word counts (for manual debugging).
+     * @param trie Trie to print
+     */
+    static void printTrie(WordCountingTrie trie){
+        for (CharSequence keyword : trie){
+            assert (keyword != null);
+            int count = trie.countOf(keyword);
+            System.out.println(Integer.toString(count) + " " + keyword);
+        }
+        System.out.println("----------------");
     }
 }

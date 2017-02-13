@@ -19,25 +19,14 @@ public class WordCount {
     /** Prints the number of times each word appears to stdout.
      * @param lookup Mapping of each word to the number of appearances.
      */
-    static void printWordCounts(Map<String, Integer> lookup){
-        for (String keyword : lookup.keySet()){
+    static void printWordCounts(Map<CharSequence, Integer> lookup){
+        for (CharSequence keyword : lookup.keySet()){
             assert (keyword != null);
             Integer count = lookup.get(keyword);
             assert (count != null);
             System.out.println(count.toString() + " " + keyword);
         }
     }
-    
-    
-    static void printTrie(WordCountingTrie trie){
-        for (CharSequence keyword : trie){
-            assert (keyword != null);
-            int count = trie.countOf(keyword);
-            System.out.println(Integer.toString(count) + " " + keyword);
-        }
-        System.out.println("----------------");
-    }
-    
 
     /** Produces a word count using Java's built-in data structures.Does stuff.
      * The input file must have each word separated by a newline.
@@ -45,11 +34,11 @@ public class WordCount {
      * @return Mapping of each word to the number of appearances.
      * @throws IOException 
      */
-    Map<String, Integer> runWithBuiltins(InputStreamReader input) throws IOException{
+    Map<CharSequence, Integer> runWithBuiltins(InputStreamReader input) throws IOException{
         
         // HashMap is fast and known to work but provides no ordering guarantees
         final int HASH_INITIAL_CAPACITY = 1024;
-        Map<String, Integer> lookup = new HashMap<String, Integer>(HASH_INITIAL_CAPACITY);
+        Map<CharSequence, Integer> lookup = new HashMap<CharSequence, Integer>(HASH_INITIAL_CAPACITY);
         
         BufferedReader input_reader = new BufferedReader(input);
         String line = input_reader.readLine();
@@ -75,7 +64,7 @@ public class WordCount {
      * @return Mapping of each word to the number of appearances.
      * @throws IOException 
      */
-    Map<String, Integer> runOptimized(InputStreamReader input) throws IOException{
+    Map<CharSequence, Integer> runOptimized(InputStreamReader input) throws IOException{
         
         // TODO: write a custom data structure more tailored to our purpose
         WordCountingTrie trie = new WordCountingTrie();
@@ -83,7 +72,7 @@ public class WordCount {
         BufferedReader input_reader = new BufferedReader(input);
         String line = input_reader.readLine();
         while (line != null){
-            StringTokenizer tokenizer = new StringTokenizer(line);
+            StringTokenizer tokenizer = new StringTokenizer(line, " \t\n\r\f,;:.?!");
             while (tokenizer.hasMoreTokens()){
                 String word = tokenizer.nextToken();
                 String key = word.toLowerCase();
@@ -93,7 +82,7 @@ public class WordCount {
             line = input_reader.readLine();
         }
                 
-        return new WordCountMap<>(trie);
+        return new WordCountMap(trie);
     }
 
 
@@ -116,27 +105,8 @@ public class WordCount {
                     throw new RuntimeException("Usage: WordCount (filename - omit for stdin)" + Integer.toString(arguments.length));
             }
             
-            /* BEGIN DEBUG */
-            
-            WordCountingTrie trie = new WordCountingTrie();
-            printTrie(trie);
-            trie.add("Lorem");
-            printTrie(trie);
-            trie.add("Lipstick");
-            printTrie(trie);
-            trie.add("Pig");
-            printTrie(trie);
-            trie.add("P");
-            printTrie(trie);
-            trie.add("Pi");
-            printTrie(trie);
-            
-            //new WordCount().runOptimized(reader);
-            
-            
-            /* END DEBUG */
-            
-            Map<String, Integer> lookup = new WordCount().runWithBuiltins(reader);
+            //Map<CharSequence, Integer> lookup = new WordCount().runWithBuiltins(reader);
+            Map<CharSequence, Integer> lookup = new WordCount().runOptimized(reader);
             printWordCounts( lookup );
             
         } catch (IOException e){

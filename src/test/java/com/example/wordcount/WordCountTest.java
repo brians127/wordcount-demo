@@ -33,7 +33,7 @@ public class WordCountTest extends UnitTest {
         }
     }
     
-    @Ignore
+    
     @Test
     public void sanityTestOptimized() {
         try {
@@ -43,12 +43,11 @@ public class WordCountTest extends UnitTest {
         }
     }
     
-    @Ignore
     @Test
     public void testWordPerLineShort() {
         try {
-            Map<String, Integer> builtins_map = new WordCount().runWithBuiltins(getText(TEXTFILE_WORD_PER_LINE_SHORT));
-            Map<String, Integer> optimized_map = new WordCount().runOptimized(getText(TEXTFILE_WORD_PER_LINE_SHORT));
+            Map<CharSequence, Integer> builtins_map = new WordCount().runWithBuiltins(getText(TEXTFILE_WORD_PER_LINE_SHORT));
+            Map<CharSequence, Integer> optimized_map = new WordCount().runOptimized(getText(TEXTFILE_WORD_PER_LINE_SHORT));
             Assert.assertEquals(builtins_map, optimized_map);
         } catch (IOException e){
             throw new RuntimeException(e);
